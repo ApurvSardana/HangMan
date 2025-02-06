@@ -8,10 +8,11 @@ class Game
     public:
         string name;
         string answer;
-        int turns = 5;
+        int turns;
 
         Game()
         {
+            turns = 5;
             ifstream readList("list.txt");
             while(getline(readList, name))
             {
@@ -23,7 +24,7 @@ class Game
 
         void selectItem()
         {
-            int index = rand() % (items.size() - 1);
+            int index = rand() % (items.size());
             name = items[index];
 
             for(char ch : name)
@@ -45,7 +46,7 @@ class Game
             bool flag = false;
             for(int i = 0; i < name.length(); i++)
             {
-                if(name[i] == ch || name[i] == ch - 32)
+                if((name[i] == ch || name[i] == ch - 32) && answer[i] != name[i])
                 {
                     flag = true;
                     turns = 5;
