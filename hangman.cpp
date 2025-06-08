@@ -1,106 +1,120 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-class Game
-{
+class Game {
     vector<string> items;
+    string name, answer;
+    int turns;
+    bool gameRunning;
 
-    public:
-        string name;
-        string answer;
-        int turns;
-
-        Game()
-        {
-            turns = 5;
-            ifstream readList("list.txt");
-            while(getline(readList, name))
-            {
-                items.push_back(name);
-            }
-            name = "";
-            selectItem();
-        }
-
-        void selectItem()
-        {
-            int index = rand() % (items.size());
-            name = items[index];
-
-            for(char ch : name)
-            {
-                if(ch != ' ')
-                    answer += '_';
-                else
-                    answer += ' ';
-            }
-
-            displayAnswer();        
-        }
-
-        void inputCharacter()
-        {
-            char ch;
-            cin >> ch;
-
-            bool flag = false;
-            for(int i = 0; i < name.length(); i++)
-            {
-                if((name[i] == ch || name[i] == ch - 32) && answer[i] != name[i])
-                {
-                    flag = true;
-                    turns = 5;
-                    answer[i] = name[i];
-                }
-            }
-
-            displayAnswer();
-
-            if(!flag) turns--;
-        }        
-
-        void displayAnswer()
-        {
-            cout << "\t\t\t";
-            for(char ch : answer)
-                cout << ch << " ";
-            
-            cout << "\n";
-        }
-
-};
-
-int main()
-{
-    cout << "\n\t\t\tWELCOME TO HANGMAN!!\n\t\tGUESS THE COUNTRY, ONE CHARACTER AT A TIME\n\t\t   YOU GET 5 CHANCES FOR EACH CHARACTER\n\n";
-    int play;
-
-    cout << "\t\t\tPRESS 1 TO PLAY\n";
-    cin >> play;
-
-    while(play == 1)
-    {
-        srand(time(0));
-        Game g;
-
-        while(g.turns > 0 && g.answer != g.name)
-        {
-            cout << "\n\t\t\tTurns : " << g.turns << "\n";
-            g.inputCharacter();
-        }
-
-        if(g.answer == g.name)
-            cout << "\n\t\t\tWIN\n";
+public:
+    Game() {
+        turns = 5;
+        gameRunning = true;
         
-        else
-        {
-            cout << "\n\t\t\tLOSS\n";
-            cout << "\t\tTHE COUNTRY WAS : " << g.name;
+        // Initialize files
+        ofstream clearInput("input.txt", ofstream::trunc);
+        clearInput.close();
+        
+        ofstream clearGameState("game_state.txt", ofstream::trunc);
+        clearGameState.close();
+        
+        // Read word list
+        ifstream readList("list.txt");
+        if (!readList.is_open()) {
+            cerr << "Error: Could not open list.txt" << endl;
+            return;
         }
-
-        cout << "\n\n\t\t\tPRESS 1 TO PLAY AGAIN\n";
-        cin >> play;
+        
+        string line;
+        while (getline(readList, line)) {
+            if (!line.empty()) {
+                items.push_back(line);
+            }
+        }
+        readList.close();
+        
+        if (items.empty()) {
+            cerr << "Error: No words found in list.txt" << endl;
+            return;
+        }
+        
+        selectItem();
     }
 
+    void selectItem() {
+        srand(time(0));
+        int index = rand() % items.size();
+        name = items[index];
+
+        answer = string(name.length(), '_');
+        for (int i = 0; i < name.length(); i++) {
+            if (name[i] == ' ') answer[i] = ' ';
+        }
+
+        updateGameState();
+    }
+
+    void inputCharacter(char ch) {
+        if (!gameRunning) return;
+        
+        bool found = false;
+        for (int i = 0; i < name.length(); i++) {
+            if ((name[i] == ch || name[i] == ch - 32) && answer[i] != name[i]) {
+                found = true;
+                answer[i] = name[i];
+            }
+        }
+        if (!found) turns--;
+
+        updateGameState();
+        
+        if (isGameOver()) {
+            gameRunning = false;
+        }
+    }
+
+    void updateGameState() {
+        ofstream outFile("game_state.txt");
+        if (!outFile.is_open()) {
+            cerr << "Error: Could not open game_state.txt" << endl;
+            return;
+        }
+        outFile << name << "\n" << answer << "\n" << turns;
+        outFile.close();
+    }
+
+    bool isGameOver() {
+        return (turns == 0 || answer == name);
+    }
+
+    string getAnswer() { return answer; }
+    string getName() { return name; }
+    int getTurns() { return turns; }
+
+    void playGame() {
+        while (gameRunning) {
+            char ch = '\0';
+            ifstream inputFile("input.txt");
+            if (inputFile.is_open()) {
+                inputFile >> ch;
+                inputFile.close();
+                
+                if (ch != '\0') {
+                    // Clear the input file
+                    ofstream clearInput("input.txt", ofstream::trunc);
+                    clearInput.close();
+                    
+                    inputCharacter(ch);
+                }
+            }
+            this_thread::sleep_for(chrono::milliseconds(100));
+        }
+    }
+};
+
+int main() {
+    Game g;
+    g.playGame();
     return 0;
 }

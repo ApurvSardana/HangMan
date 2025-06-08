@@ -1,2 +1,15 @@
+# IDE settings
 .vscode/
-hangman.exe
+
+# Compiled files
+*.exe
+*.o
+*.out
+
+# Game state files
+game_state.txt
+input.txt
+
+# Python cache
+__pycache__/
+*.pyc
