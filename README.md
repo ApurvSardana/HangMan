@@ -20,8 +20,8 @@ A modern implementation of the classic Hangman game with a beautiful GUI interfa
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/hangman-game.git
-cd hangman-game
+git clone https://github.com/ApurvSardana/HangMan.git
+cd HangMan
 ```
 
 2. Compile the C++ game engine:
